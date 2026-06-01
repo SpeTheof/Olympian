@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Olympian</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <div id="title-screen" class="screen">
+    <div class="title-container">
+      <h1 class="game-title">OLYMPIAN</h1>
+      <p class="subtitle">Ascend the Twelve Trials</p>
+      <div class="title-decoration">⚔</div>
+      <div class="name-input-group">
+        <label for="hero-name">Name your Warrior:</label>
+        <input type="text" id="hero-name" class="hero-name-input" placeholder="Enter name..." maxlength="16" autofocus>
+      </div>
+      <button class="gold-btn" onclick="Game.start()">Begin Your Journey</button>
+      <p class="title-lore">Defeat the 12 Olympian gods and claim your place among legends...</p>
+    </div>
+  </div>
+
+  <div id="map-screen" class="screen hidden">
+    <div class="map-header">
+      <h2 id="map-name">📍 Forbidden Forest</h2>
+      <div class="player-stats-bar">
+        <span>❤ <span id="map-hp">60</span>/<span id="map-max-hp">60</span></span>
+        <span>💰 <span id="map-gold">0</span></span>
+        <span>🧪 <span id="map-potions">2</span></span>
+      </div>
+    </div>
+    <div class="stats-row">
+      <span><b id="stat-name">Spartan</b></span>
+      <span>Lv.<b id="stat-level">1</b></span>
+      <span>⚔ <b id="stat-atk">10</b></span>
+      <span>🛡 <b id="stat-def">3</b></span>
+      <span>🗡+<b id="stat-weapon">1</b></span>
+      <span>🛡+<b id="stat-armor">1</b></span>
+      <span>🏆 <b id="stat-total-gold">0</b>g</span>
+      <span>🔮 <b id="stat-abilities">1</b></span>
+    </div>
+    <div class="xp-bar-container">
+      <div class="xp-bar"><div id="xp-fill-map" class="xp-fill"></div></div>
+      <span class="xp-text">XP: <span id="xp-cur-map">0</span>/<span id="xp-next-map">70</span></span>
+    </div>
+    <div class="map-body">
+      <div class="map-info">
+        <p id="map-description">A dark forest where harpies and satyrs roam...</p>
+        <div class="progress-section">
+          <p>🏆 Total Gold Earned: <span id="progress-current">0</span> / <span id="progress-needed">200</span></p>
+          <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+        </div>
+      </div>
+      <div class="map-actions">
+        <button class="gold-btn" onclick="Game.startRandomBattle()">⚔ Scout for Foes</button>
+        <button id="farm-btn" class="gold-btn hidden" onclick="Game.startFarming()">⚡ Auto Farm</button>
+        <button id="gatekeeper-btn" class="hidden" onclick="Game.startGatekeeperBattle()"></button>
+        <div id="gatekeeper-info" class="foe-preview hidden"></div>
+        <button id="boss-btn" class="hidden" onclick="Game.startBossBattle()"></button>
+        <div id="boss-info" class="foe-preview hidden"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="battle-screen" class="screen hidden">
+    <div class="battlefield-zone">
+      <canvas id="battle-canvas"></canvas>
+    </div>
+    <div class="combat-log">
+      <div id="battle-log"></div>
+    </div>
+    <div class="action-bar" id="battle-actions">
+      <button class="action-btn attack-btn" onclick="Combat.doAction('attack')">Attack</button>
+      <button class="action-btn special-btn" onclick="Combat.doSpecial()">Special</button>
+      <button class="action-btn defend-btn" onclick="Combat.doAction('defend')">Defend</button>
+      <button class="action-btn item-btn" onclick="Combat.doAction('item')">Potion</button>
+      <button class="action-btn auto-btn hidden" id="auto-btn" onclick="Combat.doAction('auto')">Auto</button>
+      <button id="farming-btn" class="action-btn farming-btn hidden" onclick="Combat.stopFarming()">⏹ Stop Farm</button>
+    </div>
+  </div>
+
+  <div id="result-screen" class="screen hidden">
+    <div class="result-container">
+      <h2 id="result-title">Victory!</h2>
+      <p id="result-text"></p>
+      <p id="result-drops"></p>
+      <button class="gold-btn" onclick="Game.afterBattle()">Return to Camp</button>
+    </div>
+  </div>
+
+  <div id="menu-screen" class="screen hidden">
+    <div class="menu-header">
+      <h2>Camp — Upgrade & Rest</h2>
+      <div class="player-stats-bar">
+        <span>❤ <span id="menu-hp">60</span>/<span id="menu-max-hp">60</span></span>
+        <span>💰 <span id="menu-gold">0</span></span>
+        <span>🧪 <span id="menu-potions">2</span></span>
+      </div>
+    </div>
+    <div class="stats-row">
+      <span><b id="menu-stat-name">Spartan</b></span>
+      <span>Lv.<b id="menu-stat-level">1</b></span>
+      <span>⚔ <b id="menu-stat-atk">10</b></span>
+      <span>🛡 <b id="menu-stat-def">3</b></span>
+      <span>⚡ <b id="menu-stat-sp">15/15</b></span>
+      <span>🗡+<b id="menu-stat-weapon">1</b></span>
+      <span>🛡+<b id="menu-stat-armor">1</b></span>
+      <span>🏆 <b id="menu-stat-total-gold">0</b>g</span>
+    </div>
+    <div class="xp-bar-container">
+      <div class="xp-bar"><div id="xp-fill-menu" class="xp-fill"></div></div>
+      <span class="xp-text">XP: <span id="xp-cur-menu">0</span>/<span id="xp-next-menu">70</span></span>
+    </div>
+    <div id="last-battle" class="last-battle-box hidden"></div>
+    <div class="menu-body">
+      <div class="shop-row">
+        <div class="shop-card" onclick="Menu.upgrade('weapon')">
+          <h3>⚒ Blacksmith — Weapon</h3>
+          <p id="weapon-desc">Dory (Spear) Lv.1 → ATK: 10</p>
+          <p class="cost" id="weapon-cost">Cost: 40g</p>
+        </div>
+        <div class="shop-card" onclick="Menu.upgrade('armor')">
+          <h3>🛡 Blacksmith — Shield</h3>
+          <p id="armor-desc">Aspis (Shield) Lv.1 → DEF: 3</p>
+          <p class="cost" id="armor-cost">Cost: 30g</p>
+        </div>
+        <div class="shop-card" onclick="Menu.upgrade('hp')">
+          <h3>🏋 Trainer — HP</h3>
+          <p id="hp-desc">Endurance — Max HP: 60 (+10)</p>
+          <p class="cost" id="hp-cost">Cost: 20g</p>
+        </div>
+        <div class="shop-card" onclick="Menu.upgrade('sp')">
+          <h3>🏋 Trainer — SP</h3>
+          <p id="sp-desc">Willpower — Max SP: 15 (+5)</p>
+          <p class="cost" id="sp-cost">Cost: 20g</p>
+        </div>
+      </div>
+      <div class="shop-row">
+        <div class="shop-card" onclick="Menu.buyPotion()">
+          <h3>🧪 Provisions</h3>
+          <p id="potion-desc">Health Potion (restores 30 HP) — Own: 2</p>
+          <p class="cost" id="potion-cost">Cost: 15g</p>
+        </div>
+        <div class="shop-card" id="sage-card" onclick="Menu.learnAbility()">
+          <h3>🔮 Sage</h3>
+          <p id="sage-desc">Learn a new ability</p>
+          <p class="cost" id="sage-cost">Requires a Unique Soul</p>
+        </div>
+        <div class="shop-card" id="auto-card" onclick="Menu.buyAutoAttack()">
+          <h3>⚡ Auto-Attack</h3>
+          <p id="auto-desc">Automatically uses best ability</p>
+          <p class="cost" id="auto-cost"></p>
+        </div>
+      </div>
+      <div id="upgrade-suggestions" class="suggestions-box"></div>
+      <div class="abilities-section">
+        <h3>Your Abilities <span class="sub-text">(click for details)</span></h3>
+        <div id="abilities-list" class="abilities-list"></div>
+        <button class="gold-btn" style="margin-top:6px;width:100%" onclick="Game.showAbilities()">📊 View Ability Stats</button>
+      </div>
+    </div>
+    <button class="gold-btn continue-btn" onclick="Game.continueMap()">Continue Journey →</button>
+  </div>
+
+  <div id="abilities-screen" class="screen hidden">
+    <div class="menu-header">
+      <h2>📊 Ability Codex</h2>
+    </div>
+    <div id="abilities-codex-list" class="abilities-codex-list"></div>
+    <button class="gold-btn continue-btn" onclick="Game.hideAbilities()">← Back</button>
+  </div>
+
+  <div id="victory-screen" class="screen hidden">
+    <div class="result-container">
+      <h1 class="victory-title">OLYMPIAN</h1>
+      <h2>You Have Conquered Olympus!</h2>
+      <p>The gods have fallen. Your legend echoes through eternity.</p>
+      <p id="final-stats"></p>
+      <button class="gold-btn" onclick="Game.reset()">Start New Journey</button>
+    </div>
+  </div>
+</div>
+<script src="player.js"></script>
+<script src="enemies.js"></script>
+<script src="gatekeepers.js"></script>
+<script src="bosses.js"></script>
+<script src="lib/jslibxm.min.js"></script>
+<script src="sound.js"></script>
+<script src="music.js"></script>
+<script src="combat.js"></script>
+<script src="menu.js"></script>
+<script src="map.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
