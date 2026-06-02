@@ -759,8 +759,8 @@ const Combat = {
 
     const wasFarming = this.farming;
     if (wasFarming && this.battleType === 'random') {
-      Player.hp = this.player.hp;
-      Player.sp = this.player.sp;
+      Player.hp = Player.maxHp;
+      Player.sp = Player.maxSp;
     }
     this.player = null;
     this.enemy = null;
