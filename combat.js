@@ -14,6 +14,7 @@ const Combat = {
   animFrame: null,
   floatingTexts: [],
   idleTime: 0,
+  farmSession: null,
   enemyShake: 0,
   playerShake: 0,
   edx: 180, edy: 100, ecx: 180, ecy: 70,
@@ -35,6 +36,9 @@ const Combat = {
     this.isDefending = false;
     this.autoMode = false;
     this.farming = Player.farming;
+    if (this.farming && !this.farmSession) {
+      this.farmSession = { battles: 0, gold: 0, xp: 0 };
+    }
     this.turnCount = 0;
     this.bossPhaseTriggered = false;
     this.displayEnemyHp = this.enemy.hp;
@@ -719,10 +723,15 @@ const Combat = {
     Player.gold += goldEarned;
     Player.totalGoldEarned += goldEarned;
     Player.totalBattles++;
+    if (this.farmSession) {
+      this.farmSession.battles++;
+      this.farmSession.gold += goldEarned;
+    }
 
     const level = this.enemy.level || Math.floor((this.enemy.maxHp || 30) / 8);
     const xpMult = this.battleType === 'boss' ? 2.5 : (this.battleType === 'gatekeeper' ? 1.5 : 1);
     const xpGain = Math.floor(level * 8 * xpMult + 4);
+    if (this.farmSession) this.farmSession.xp += xpGain;
     const prevLevel = Player.level;
     const leveled = Player.addXp(xpGain);
     let levelUpCount = leveled ? 1 : 0;
@@ -773,9 +782,15 @@ const Combat = {
       return;
     }
 
-    document.getElementById('battle-screen').classList.add('hidden');
     Sound.victory();
     Music.stop();
+
+    if (this.farmSession && this.farmSession.battles > 0) {
+      this._showFarmSummary();
+      return;
+    }
+
+    document.getElementById('battle-screen').classList.add('hidden');
 
     if (this.battleType === 'random') {
       Game.afterBattle();
@@ -809,7 +824,19 @@ const Combat = {
     this.autoMode = false;
     document.getElementById('farming-btn').classList.add('hidden');
     document.getElementById('auto-btn').textContent = 'Auto';
-    this.log('⏹ Farming stopped.', 'log-system');
+    this.log('⏹ Farming will stop after this battle.', 'log-system');
+  },
+
+  _showFarmSummary() {
+    const s = this.farmSession;
+    if (!s || s.battles === 0) { this.farmSession = null; return; }
+    document.getElementById('battle-screen').classList.add('hidden');
+    document.getElementById('result-title').textContent = '⏹ Farming Session Over';
+    document.getElementById('result-text').innerHTML =
+      `⚔ Battles won: ${s.battles}<br>💰 Gold earned: ${s.gold}<br>⚡ XP earned: ${s.xp}`;
+    document.getElementById('result-drops').textContent = '';
+    document.getElementById('result-screen').classList.remove('hidden');
+    this.farmSession = null;
   },
 
   onDefeat() {
@@ -836,6 +863,10 @@ const Combat = {
     document.getElementById('battle-screen').classList.add('hidden');
     Sound.defeat();
     Music.stop();
-    Game.afterBattle();
+    if (wasFarming) {
+      this._showFarmSummary();
+    } else {
+      Game.afterBattle();
+    }
   }
 };
